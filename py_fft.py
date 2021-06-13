@@ -8,42 +8,48 @@ import struct
 import serial
 import time
 
-print("Hello")
-N = 10000
-Fs = 2777
+Fs = 42100
 Ts = 1.0 / Fs
-print("N = {}".format(N))
-print("Ts = {}".format(Ts))
 
-ser = serial.Serial('/dev/ttyS10', baudrate=2000000) 
-ser.write(b'r') # 2 bytes per sample
-esp32_data_packet = ser.readline().decode("utf-8")  # 2 bytes per sample
-esp32_data_raw_str = esp32_data_packet.split(',')
+ser = serial.Serial('/dev/ttyS10', baudrate=921600) 
 
-esp32_data_raw = [int(x) for x in esp32_data_raw_str]
+plt.ion()
 
-# esp32_data_int_lsb = struct.unpack('<' + 'H' * count, esp32_data_raw)
-# esp32_data_int_msb = struct.unpack('>' + 'H' * count, esp32_data_raw)
-# esp32_data_int = struct.unpack('B' * len(esp32_data_raw), esp32_data_raw)
+for x in range(0, 100):
+    ser.write(b'r')
+    esp32_data_packet = ser.readline().decode("utf-8")  # 2 bytes per sample
+    esp32_data_raw_str = esp32_data_packet.split(',')
+    
+    y = [int(x) for x in esp32_data_raw_str]
+    N = len(y)
 
-# reading in wave file with scipy
-# samplerate, samples = wavfile.read('CSC_sine_1000Hz.wav')
-# samples_lsb = np.asarray(esp32_data_int_lsb) 
-# samples_msb = np.asarray(esp32_data_int_msb) 
+    x = np.linspace(0.0, N*Ts, N, endpoint=False)
 
-# y_lsb = samples_lsb[0:N]
-# y_msb = samples_msb[0:N]
-x = np.linspace(0.0, N*Ts, N, endpoint=False)
+    # figure, axis = plt.subplots(2) # plot 2 plots 1 over the other
 
-# plot time domain
-plt.plot(esp32_data_raw) 
-plt.show()
+    # axis[0].clear()
+    # axis[1].clear()
 
-# plot frequency domain
-# xf = fftfreq(N, Ts)[:N//2]
-# yf = fft(y)
-# plt.plot(xf, 2.0/N * np.abs(yf[0:N//2])) 
-# x_index_max = y.size / 2
-# plt.xlim([0, x_index_max])
+    # plot time domain
+    # plt.plot(x, y) 
+
+    # plot frequency domain
+    xf = fftfreq(N, Ts)[:N//2]
+    yf = fft(y)
+
+    # numBins = 10
+    # binSize = int(xf[-1:]) // numBins # number of indices to combine in each bin
+    # numIndicesPerBin = int(len(xf) // numBins)
+    # for (
+    # print(numIndicesPerBin)
+    # print("frequency range of each bin: {}".format(binSize))
+    # binsX = np.linspace(binSize, numBins*binSize, binSize)
+   
+
+    plt.clf()
+    plt.plot(xf, 2.0/N * np.abs(yf[0:N//2])) 
+    # axis[1].set_title("Frequency Domain")
+    plt.xlim([20, 20000])
+    plt.pause(3)
 
 ser.close()             # close port
